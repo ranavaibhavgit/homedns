@@ -1,0 +1,45 @@
+version: "1.0"
+
+networks:
+  dns-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    hoostname: pihole
+    restart: unless-stopped
+    networks:
+      dns-network:
+        ipv4_address: 172.20.0.2
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "80:80/tcp"
+    environment:
+      TZ: 'America/Toronto'
+      WEBPASSWORD: 'your_password_here'
+    volumes:
+      - './pihole/etc-pihole/:/etc/pihole/'
+      - './pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
+    cap_add:
+      - NET_ADMIN
+    
+  ytproxy:
+    container_name: ytproxy
+    image: nginx:alpine
+    hostname: ytproxy
+    restart: unless-stopped
+    networks:
+      dns-network:
+        ipv4_address: 172.20.0.3
+    ports:
+      - "443:443/tcp"
+    volumes:
+      - './ytproxy/nginx.conf:/etc/nginx/nginx.conf:ro'
+      - './ytproxy/certs/:/etc/nginx/certs/:ro'
+  
