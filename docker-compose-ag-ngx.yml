@@ -1,0 +1,31 @@
+services:
+  adguardhome:
+    image: adguard/adguardhome
+    container_name: adguardhome
+    restart: unless-stopped
+    volumes:
+      - ./adguard/work:/opt/adguardhome/work
+      - ./adguard/conf:/opt/adguardhome/conf
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "80:80/tcp"      # AdGuard UI (Initial setup)
+      - "3000:3000/tcp"  # AdGuard UI
+    networks:
+      - homelab_net
+
+  nginx-interceptor:
+    image: nginx:latest
+    container_name: nginx-interceptor
+    restart: unless-stopped
+    ports:
+      - "443:443/tcp"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - homelab_net
+
+networks:
+  homelab_net:
+    driver: bridge
